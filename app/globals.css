@@ -8,6 +8,7 @@
   --rule: #c5ccc8;
   --blue: #2447c8;
   --hi: #f2d544;
+  --danger: #a3261c;
 }
 
 @theme inline {
@@ -17,6 +18,7 @@
   --color-rule: var(--rule);
   --color-blue: var(--blue);
   --color-hi: var(--hi);
+  --color-danger: var(--danger);
   --font-sans: var(--font-pretendard), system-ui, sans-serif;
 }
 
