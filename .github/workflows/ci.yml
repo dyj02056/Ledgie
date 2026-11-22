@@ -21,6 +21,8 @@ jobs:
       DATABASE_URL: postgres://app_user:ci_pw@localhost:5432/ledgie
       DATABASE_URL_OWNER: postgres://postgres:dev@localhost:5432/ledgie
       APP_DB_PASSWORD: ci_pw
+      DATABASE_URL_AUTH: postgres://auth_user:ci_auth_pw@localhost:5432/ledgie
+      AUTH_DB_PASSWORD: ci_auth_pw
       BETTER_AUTH_SECRET: ci-only-secret-ci-only-secret-0123456789
       BETTER_AUTH_URL: http://localhost:3000
     steps:

@@ -1,4 +1,4 @@
-import { getUserId } from "@/lib/auth";
+import { requireUserId } from "@/lib/auth";
 import { withUser } from "@/lib/db";
 import { won } from "@/lib/money";
 
@@ -6,7 +6,7 @@ type Item = { store: string; amount: number; category: string; spent_on: string 
 type R = { id: string; created_at: string; raw_text: string | null; items: Item[] | null; saved: number };
 
 export default async function Receipts() {
-  const userId = (await getUserId())!;
+  const userId = await requireUserId();
   const rs = await withUser(userId, (q) =>
     q<R>(
       `select r.id, to_char(r.created_at at time zone 'Asia/Seoul', 'YYYY-MM-DD HH24:MI') as created_at,

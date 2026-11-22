@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getUserId } from "@/lib/auth";
+import { requireUserId } from "@/lib/auth";
 import { withUser } from "@/lib/db";
 import { monthKST, won } from "@/lib/money";
 import type { UIMessage } from "ai";
@@ -15,7 +15,7 @@ const shift = (m: string, d: number) => {
 const RANGE = "spent_on >= $1::date and spent_on < ($1::date + interval '1 month')";
 
 export default async function Ledger(props: PageProps<"/">) {
-  const userId = (await getUserId())!; // 레이아웃이 이미 로그인을 확인했다
+  const userId = await requireUserId();
   const sp = await props.searchParams;
   const raw = typeof sp.m === "string" ? sp.m : "";
   const month = /^\d{4}-(0[1-9]|1[0-2])$/.test(raw) ? raw : monthKST();

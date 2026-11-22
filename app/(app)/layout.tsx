@@ -4,7 +4,7 @@ import { getUserId } from "@/lib/auth";
 import SignOut from "./SignOut";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
-  // 로그인하지 않은 요청은 여기서 막는다. 데이터는 RLS가 한 번 더 막는다
+  // proxy가 쿠키 유무를, 레이아웃·각 페이지가 세션 유효성을, RLS가 데이터 접근을 막는다
   if (!(await getUserId())) redirect("/login");
   return (
     <>

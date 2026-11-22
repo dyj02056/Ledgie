@@ -1,14 +1,16 @@
-import { getUserId } from "@/lib/auth";
+import { requireUserId } from "@/lib/auth";
 import { withUser } from "@/lib/db";
+import DeleteAccount from "./DeleteAccount";
 
-type U = { calls: number; errors: number; input: number; output: number; p50: number | null; p95: number | null };
+type U = { calls: number; errors: number; aborted: number; input: number; output: number; p50: number | null; p95: number | null };
 
 export default async function Usage() {
-  const userId = (await getUserId())!;
+  const userId = await requireUserId();
   const [u] = await withUser(userId, (q) =>
     q<U>(
       // 이번 달(한국 시간) 호출 수·오류·토큰·지연 시간 분위수
-      `select count(*)::int as calls, count(*) filter (where not ok)::int as errors,
+      `select count(*)::int as calls, count(*) filter (where status = 'error')::int as errors,
+              count(*) filter (where status = 'aborted')::int as aborted,
               coalesce(sum(input_tokens),0)::int as input, coalesce(sum(output_tokens),0)::int as output,
               (percentile_cont(0.5) within group (order by latency_ms))::int as p50,
               (percentile_cont(0.95) within group (order by latency_ms))::int as p95
@@ -21,6 +23,7 @@ export default async function Usage() {
   const rows: [string, string][] = [
     ["호출 수", `${u.calls.toLocaleString("ko-KR")}회`],
     ["오류율", `${rate}% (${u.errors}회)`],
+    ["중단", `${u.aborted}회`],
     ["입력 토큰", u.input.toLocaleString("ko-KR")],
     ["출력 토큰", u.output.toLocaleString("ko-KR")],
     ["응답 시간 중앙값", ms(u.p50)],
@@ -38,6 +41,9 @@ export default async function Usage() {
         ))}
       </dl>
       <p className="mt-4 text-sm text-ink-soft">응답 시간에는 데이터베이스 첫 연결 지연이 섞여 있을 수 있어요.</p>
+      <section aria-label="계정" className="mt-16">
+        <DeleteAccount />
+      </section>
     </main>
   );
 }

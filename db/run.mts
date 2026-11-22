@@ -5,13 +5,15 @@ import { Client } from "pg";
 const c = new Client({ connectionString: process.env.DATABASE_URL_OWNER });
 await c.connect();
 
-// app_user는 SQL로 만든 일반 역할이라 RLS를 우회하지 못한다
-const pw = process.env.APP_DB_PASSWORD;
-if (!pw) throw new Error("APP_DB_PASSWORD가 필요해요");
-await c.query(`do $$ begin
-  if not exists (select 1 from pg_roles where rolname = 'app_user') then
-    create role app_user login password ${c.escapeLiteral(pw)};
-  end if; end $$`);
+// app_user(앱 데이터)와 auth_user(인증 테이블)는 SQL로 만든 일반 역할이라 RLS를 우회하지 못한다
+for (const [role, env] of [["app_user", "APP_DB_PASSWORD"], ["auth_user", "AUTH_DB_PASSWORD"]]) {
+  const pw = process.env[env];
+  if (!pw) throw new Error(`${env}가 필요해요`);
+  await c.query(`do $$ begin
+    if not exists (select 1 from pg_roles where rolname = '${role}') then
+      create role ${role} login password ${c.escapeLiteral(pw)};
+    end if; end $$`);
+}
 
 await c.query("create table if not exists _migrations (name text primary key)");
 const done = new Set((await c.query("select name from _migrations")).rows.map((r) => r.name));
