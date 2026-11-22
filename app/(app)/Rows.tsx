@@ -33,7 +33,7 @@ function EditRow({ row, onDone }: { row: Row; onDone: () => void }) {
       <td colSpan={5} className="py-2.5">
         <form onSubmit={submit} className="flex flex-wrap items-center gap-2 text-sm">
           <input name="spent_on" type="date" required defaultValue={row.spent_on} aria-label="날짜" className={field} />
-          <input name="store" required maxLength={80} defaultValue={row.store} aria-label="가게" className={`${field} min-w-0 flex-1`} />
+          <input name="store" required maxLength={80} defaultValue={row.store} aria-label="가게" className={`${field} order-first w-full min-w-0 sm:order-none sm:w-auto sm:flex-1`} />
           <select name="category" defaultValue={row.category} aria-label="분류" className={field}>
             {CATEGORIES.map((c) => (
               <option key={c}>{c}</option>
@@ -85,11 +85,17 @@ export default function Rows({ rows }: { rows: Row[] }) {
               <EditRow key={r.id} row={r} onDone={() => setEditing(null)} />
             ) : (
               <tr key={r.id} className={`group border-b border-rule ${seen.has(r.id) ? "" : "fresh"}`}>
-                <td className="w-20 py-2.5 pr-3 text-ink-soft">{r.spent_on.slice(5).replace("-", "/")}</td>
-                <td className="py-2.5 pr-3">{r.store}</td>
-                <td className="py-2.5 pr-3 text-ink-soft">{r.category}</td>
-                <td className="py-2.5 text-right font-semibold">{won(r.amount)}</td>
-                <td className="w-24 py-2.5 pl-3 text-right text-sm text-ink-soft">
+                <td className="w-14 whitespace-nowrap py-2.5 pr-3 align-top text-ink-soft sm:w-20 sm:align-middle">
+                  {r.spent_on.slice(5).replace("-", "/")}
+                </td>
+                {/* 좁은 화면에서는 분류를 가게 이름 아래로 내린다 */}
+                <td className="break-keep py-2.5 pr-3">
+                  {r.store}
+                  <span className="block text-sm text-ink-soft sm:hidden">{r.category}</span>
+                </td>
+                <td className="hidden whitespace-nowrap py-2.5 pr-3 text-ink-soft sm:table-cell">{r.category}</td>
+                <td className="whitespace-nowrap py-2.5 text-right align-top font-semibold sm:align-middle">{won(r.amount)}</td>
+                <td className="whitespace-nowrap py-2.5 pl-3 text-right align-top text-sm text-ink-soft sm:w-24 sm:align-middle">
                   <button onClick={() => setEditing(r.id)} aria-label={`${r.store} 수정`} className="hover:text-ink">
                     수정
                   </button>
