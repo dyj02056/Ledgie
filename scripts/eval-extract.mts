@@ -38,12 +38,16 @@ const key = (e: Exp) => e.map(([a, c]) => `${a}:${c}`).sort().join(",");
 let ok = 0, saved = 0;
 for (const [i, [text, want]] of cases.entries()) {
   const t0 = Date.now();
-  const res = await post("/api/chat", { messages: [{ id: `e${i}-${t0}`, role: "user", parts: [{ type: "text", text }] }] }, cookie);
+  // 같은 원문은 중복으로 건너뛰므로 실행마다 꼬리표를 붙여 새 원문으로 만든다
+  const res = await post("/api/chat", { message: { id: `e${i}-${t0}`, role: "user", parts: [{ type: "text", text: `${text}\n#${t0}` }] } }, cookie);
   const raw = await res.text();
   const outs = raw.split("\n").filter((l) => l.startsWith("data: {")).map((l) => JSON.parse(l.slice(6)));
   const call = outs.find((e) => e.type === "tool-input-available" && e.toolName === "extract_receipt");
   const got: Exp = (call?.input?.items ?? []).map((x: { amount: number; category: string }) => [x.amount, x.category]);
-  const wrote = outs.some((e) => e.type === "tool-output-available" && e.output?.saved > 0);
+  // 같은 가게·금액·날짜가 이미 있으면(이전 실행) possible_duplicates로 확인을 요구하는 것도 정상 동작으로 본다
+  const wrote = outs.some(
+    (e) => e.type === "tool-output-available" && (e.output?.saved > 0 || e.output?.status === "possible_duplicates"),
+  );
   const hit = key(got) === key(want);
   if (hit) ok++;
   if (wrote) saved++;
